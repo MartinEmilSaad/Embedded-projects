@@ -1,0 +1,81 @@
+#include<avr/io.h>
+#include<avr/interrupt.h>
+#include<util/delay.h>
+
+//Code of the transmitter
+
+void increment()
+{
+	SREG=1<<7;
+	DDRB = 0xff;
+	UBRRL = 1<<4 | 1<<5 | 1<<7;
+	UBRRH = 1<<2;
+	UCSRB = 1<<6;    ////ENABLES INTERRUPT OF RX & TX
+	UCSRB |= 1<<3;
+	UCSRC = 1<<6;
+	UCSRC|=1<<4 |1<<5;
+	UCSRC &= ~(1<<3);
+	UCSRB &= ~(1<<2);
+	UCSRC &= ~(1<<1 | 1<<2);
+	UDR = 0;
+	PORTD = 0;
+	for(int i = 1 ; i < 20 ; i++)
+	{
+		while(1)
+		{
+			if(UCSRA>>6 == 1)
+			{
+				UDR = i ;
+				PORTB = UDR;
+				_delay_ms(1000);
+				break;
+			}
+		}
+	}
+}
+
+
+int main()
+{
+	increment();
+	return 1;
+}
+
+
+// Code of the reciever  
+
+void rec()
+{
+	SREG = 1<<7;
+	UCSRB = 1<<4;
+	UCSRB |= 1<<7;
+	UCSRB &= ~(1<<2);
+	UCSRC &= ~(1<<1 | 1<<2);
+	UCSRC &= ~(1<<6);
+	UCSRC &= ~(1<<1 | 1<<2);
+	UCSRC &= ~(1<<3);
+	UBRRL = 1<<4 | 1<<5 | 1<<7;
+	UBRRH = 1<<2;
+	DDRB = 0xff;
+	while(1)
+	{
+		if(UCSRA>>7==1)
+		{
+			PORTB = UDR;
+			_delay_ms(1000);
+		}
+	}
+}
+
+
+int main()
+{
+	rec();
+	return 1;
+}
+
+
+
+
+
+
